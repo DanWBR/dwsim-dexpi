@@ -39,8 +39,9 @@ from pydexpi import get_graph, load_json_file, load_xml_file
 from pydexpi.toolkits import process_toolkit as pt
 from pydexpi.toolkits.diagram_toolkit import Bounds, object_extents
 from pydexpi.toolkits.display_name import get_tag
+from pydexpi.toolkits.model_toolkit import get_all_instances_in_model
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 ITEM, PASS, END = "item", "pass", "end"
 
@@ -135,6 +136,64 @@ def massflow_kgh(values) -> float | None:
     return float(q.value) * TO_KGH[unit] if unit in TO_KGH else None
 
 
+TO_WATT = {"Watt": 1.0, "Kilowatt": 1e3, "Megawatt": 1e6}
+TO_M2 = {"MetreSquared": 1.0, "CentimetreSquared": 1e-4, "MillimetreSquared": 1e-6, "FootSquared": 0.09290304,
+         "InchSquared": 6.4516e-4, "YardSquared": 0.83612736}
+TO_M3 = {"MetreCubed": 1.0, "DecimetreCubed": 1e-3, "Litre": 1e-3, "CentimetreCubed": 1e-6, "FootCubed": 0.028316846592,
+         "UsGallon": 3.785411784e-3, "UsFluidOunce": 2.95735295625e-5}
+TO_W_M2K = {"WattPerMetreSquaredKelvin": 1.0, "KilowattPerMetreSquaredKelvin": 1e3}
+
+
+def _scaled(values, table) -> float | None:
+    q = _quantity(values)
+    if q is None or getattr(q, "value", None) is None:
+        return None
+    unit = _unit(q)[1]
+    return float(q.value) * table[unit] if unit in table else None
+
+
+def _number(values, fraction=False) -> float | None:
+    """A dimensionless value; with *fraction*, a percentage is turned into a fraction."""
+    for qualified in values or []:
+        value = getattr(qualified, "value", None)
+        number = getattr(value, "value", value)
+        if isinstance(number, (int, float)) and not isinstance(number, bool):
+            unit = getattr(getattr(value, "unit", None), "value", None)
+            return float(number) * (TO_FRACTION.get(unit, 1.0) if fraction else 1.0)
+    return None
+
+
+def step_specs(step) -> dict[str, float]:
+    """What a process step gives for itself, in SI units, under the reading's spec names."""
+    def kelvin(values):
+        t = temperature_c(values)
+        return None if t is None else t + 273.15
+
+    def pascal(values):
+        b = pressure_bar(values)
+        return None if b is None else b * 1e5
+
+    sources = [
+        ("duty", "duty", lambda v: _scaled(v, TO_WATT)),
+        ("temperature", "temperature", kelvin),
+        ("pressure", "pressure", pascal),
+        ("polytropic_efficiency", "polytropicEfficiency", lambda v: _number(v, fraction=True)),
+        ("pressure_ratio", "compressionRatio", _number),
+        ("reflux_ratio", "refluxRatio", _number),
+        ("area", "area", lambda v: _scaled(v, TO_M2)),
+        ("u", "heatTransferCoefficient", lambda v: _scaled(v, TO_W_M2K)),
+        ("volume", "volume", lambda v: _scaled(v, TO_M3)),
+    ]
+    specs = {}
+    for key, attribute, convert in sources:
+        values = getattr(step, attribute, None)
+        if isinstance(values, list) and values:
+            value = convert(values)
+            if value is not None:
+                specs[key] = value
+    return specs
+
+
 # -- the network both models are reduced to -------------------------------------------------
 
 class Network:
@@ -144,9 +203,31 @@ class Network:
         self.nodes: dict[str, dict] = {}
         self.edges: list[dict] = []
         self.notes: list[str] = []
+        self.controllers: list[dict] = []
+        # where a piece taken out went: ("node", key) or ("edge", line), and the lines joined into others
+        self._went: dict[str, tuple] = {}
+        self._joined: dict[int, dict] = {}
+        self._gone: list[dict] = []
 
-    def node(self, key, kind, tag="", category="", cls=""):
-        self.nodes.setdefault(key, {"kind": kind, "tag": tag, "category": category, "cls": cls})
+    def node(self, key, kind, tag="", category="", cls="", **more):
+        self.nodes.setdefault(key, {"kind": kind, "tag": tag, "category": category, "cls": cls, **more})
+
+    def locate(self, key):
+        """What is left where a piece of the model was: ("item", key), ("line", line) or None."""
+        for _ in range(10000):
+            if key in self.nodes:
+                return ("item", key) if self.nodes[key]["kind"] == ITEM else None
+            went = self._went.get(key)
+            if went is None:
+                return None
+            if went[0] == "node":
+                key = went[1]
+                continue
+            line = went[1]
+            while id(line) in self._joined:
+                line = self._joined[id(line)]
+            return ("line", line) if any(e is line for e in self.edges) else None
+        return None
 
     def edge(self, u, v, **data):
         self.edges.append({"u": u, "v": v, **data})
@@ -169,6 +250,11 @@ class Network:
                     continue
                 ins, outs = self._ins(n), self._outs(n)
                 if not ins or not outs:
+                    # a dead end hangs on what it was piped to
+                    for e in ins + outs:
+                        self._went[n] = ("node", e["u"] if e["v"] == n else e["v"])
+                        break
+                    self._gone.extend(ins + outs)
                     self.edges = [e for e in self.edges if e["u"] != n and e["v"] != n]
                     del self.nodes[n]
                     pruned[d["cls"]] += 1
@@ -179,10 +265,16 @@ class Network:
                     merged.update({k: v for k, v in a.items() if v not in (None, "", {})})
                     merged["u"], merged["v"] = a["u"], b["v"]
                     merged["from_port"], merged["to_port"] = a.get("from_port", ""), b.get("to_port", "")
+                    merged["from_level"], merged["to_level"] = a.get("from_level"), b.get("to_level")
                     merged["through"] = a.get("through", []) + [d["tag"] or d["cls"]] + b.get("through", [])
                     self.edges = [e for e in self.edges if e is not a and e is not b]
+                    self._gone.extend((a, b))
                     if merged["u"] != merged["v"]:
                         self.edges.append(merged)
+                        self._joined[id(a)] = self._joined[id(b)] = merged
+                        self._went[n] = ("edge", merged)
+                    else:
+                        self._went[n] = ("node", merged["u"])
                     del self.nodes[n]
                     joined[d["cls"]] += 1
                     changed = True
@@ -324,7 +416,9 @@ def process_network(model) -> tuple[Network, list[str]]:
 
     def add(step):
         kind, category = _step_category(step)
-        net.node(step.id, kind, _tag(step), category, type(step).__name__)
+        trays = sum(1 for detail in getattr(step, "processStepDetails", None) or [] if type(detail).__name__ == "ContactingOnTray")
+        net.node(step.id, kind, _tag(step), category, type(step).__name__,
+                 specs=step_specs(step) if kind == ITEM else {}, stages=trays if trays >= 2 else None)
         return step.id
 
     compounds: list[str] = []
@@ -376,9 +470,50 @@ def _equipment_category(classes: list[str]) -> str:
     return "Generic"
 
 
-def plant_network(model) -> tuple[Network, list[str]]:
+def _nozzle_levels(model, extents) -> dict[str, tuple[str, float]]:
+    """Each drawn nozzle's equipment and height on it, 0 at the top to 1 at the bottom."""
+    from pydexpi.pydexpi_classes.plant import processEquipment
+
+    levels = {}
+    for equipment in get_all_instances_in_model(model, processEquipment.TaggedPlantItem):
+        box = extents.get(equipment.id)
+        if box is None or box.max_y <= box.min_y:
+            continue
+        for nozzle in getattr(equipment, "nozzles", None) or []:
+            at = extents.get(nozzle.id)
+            if at is not None:
+                level = ((at.min_y + at.max_y) / 2 - box.min_y) / (box.max_y - box.min_y)
+                levels[nozzle.id] = (equipment.id, min(1.0, max(0.0, level)))
+    return levels
+
+
+TOP_BOTTOM = {"Vessel", "Tank", "Column", "Separator"}
+
+
+def _control_loops(g) -> list[dict]:
+    """The loops of a P&ID: a function that controls, what its transmitter senses and the valve it moves."""
+    loops = []
+    for n, d in g.nodes(data=True):
+        if d.get("label") != "ProcessInstrumentationFunction" or "C" not in (d.get("processInstrumentationFunctions") or ""):
+            continue
+        variable = (d.get("processInstrumentationFunctionCategory") or "")[:1].upper()
+        valves = [v2 for _, a, e in g.out_edges(n, data=True) if e.get("label") == "SignalConveyingFunction"
+                  for _, v2, e2 in g.out_edges(a, data=True) if e2.get("label") == "OperatedValveReference"]
+        senses = [(s2, e2.get("stitched_from")) for s, _, e in g.in_edges(n, data=True) if e.get("label") == "MeasuringLineFunction"
+                  for _, s2, e2 in g.out_edges(s, data=True) if e2.get("label") == "reference"]
+        if variable not in ("P", "T", "F", "L") or not valves or not senses:
+            continue
+        number = d.get("processInstrumentationFunctionNumber") or ""
+        loops.append({"tag": (variable + (d.get("processInstrumentationFunctions") or "") + " " + number).strip(),
+                      "variable": variable, "valve": valves[0], "sense": senses[0][0]})
+    return loops
+
+
+def plant_network(model, extents) -> tuple[Network, list[str]]:
     net = Network()
     g = get_graph(model, graph_level="conceptual")
+    levels = _nozzle_levels(model, extents)
+    net.controllers = _control_loops(g)
     controlled = {}
     for u, v, d in g.edges(data=True):
         if d.get("label") == "OperatedValveReference":
@@ -407,9 +542,16 @@ def plant_network(model) -> tuple[Network, list[str]]:
         if d.get("label") not in FLOW_EDGES or u not in net.nodes or v not in net.nodes:
             continue
         parts = [d.get("nominalDiameterRepresentation"), d.get("fluidCode"), d.get("lineNumber"), d.get("pipingClassCode")]
+        ends = {}
+        owner, level = levels.get(d.get("stitched_from"), (None, None))
+        for side, key in (("from", u), ("to", v)):
+            if owner == key:
+                ends[side + "_level"] = round(level, 3)
+                if net.nodes[key]["category"] in TOP_BOTTOM:
+                    ends[side + "_port"] = "top" if level <= 0.15 else "bottom" if level >= 0.85 else ""
         net.edge(u, v, id=d.get("collapsed_node_id") or "", name="",
                  line_number="-".join(str(p).replace(" ", "") for p in parts if p) if d.get("lineNumber") else "",
-                 T=None, P=None, W=None, compounds={})
+                 T=None, P=None, W=None, compounds={}, **ends)
     return net, []
 
 
@@ -449,11 +591,11 @@ def reading(path: Path, strict: bool) -> dict:
     load = load_json_file if path.suffix.lower() == ".json" else load_xml_file
     model = load(str(path), strict=strict)
     is_process = type(model.conceptualModel).__name__ == "ProcessModel"
-    net, compounds = process_network(model) if is_process else plant_network(model)
+    extents = object_extents(model)
+    net, compounds = process_network(model) if is_process else plant_network(model, extents)
     net.reduce()
     net.unique_tags()
 
-    extents = object_extents(model)
     sheet = None
     for b in extents.values():
         sheet = b if sheet is None else sheet.union(b)
@@ -474,24 +616,42 @@ def reading(path: Path, strict: bool) -> dict:
         if d["kind"] != ITEM:
             continue
         x, y = place(key)
-        units.append({"tag": d["tag"], "category": d["category"], "x": x, "y": y, "dexpi_class": d["cls"], "dexpi_id": key})
+        units.append({"tag": d["tag"], "category": d["category"], "x": x, "y": y, "stages": d.get("stages"),
+                      "specs": {k: round(v, 6) for k, v in (d.get("specs") or {}).items()},
+                      "dexpi_class": d["cls"], "dexpi_id": key})
 
     def end(key):
         d = net.nodes[key]
         return d["tag"] if d["kind"] == ITEM else ""
 
     lines = []
+    emitted: dict[int, int] = {}
     for e in net.edges:
         frm, to = end(e["u"]), end(e["v"])
         if not frm and not to:
             net.notes.append(f"line {e['id'] or e['line_number']}: joins two sheet ends only, left out")
             continue
+        emitted[id(e)] = len(lines)
         lines.append({"id": e["id"], "name": e["name"], "line_number": e["line_number"], "from": frm, "to": to,
                       "T": e["T"], "P": e["P"], "W": e["W"],
+                      "from_level": e.get("from_level"), "to_level": e.get("to_level"),
                       "from_port": e.get("from_port", ""), "to_port": e.get("to_port", ""),
                       "compounds": {k: round(v, 6) for k, v in e["compounds"].items()},
                       "mole_fractions": {k: round(v, 8) for k, v in e.get("mole_fractions", {}).items()},
                       "through": e.get("through", [])})
+
+    controllers = []
+    for loop in net.controllers:
+        valve = net.locate(loop["valve"])
+        sense = net.locate(loop["sense"])
+        if valve is None or valve[0] != "item" or net.nodes[valve[1]]["category"] != "Valve" or sense is None:
+            net.notes.append(f"control loop {loop['tag']}: its valve or what it measures is not among the items and lines, left out")
+            continue
+        if sense[0] == "line" and id(sense[1]) not in emitted:
+            continue
+        controllers.append({"tag": loop["tag"], "variable": loop["variable"], "valve": net.nodes[valve[1]]["tag"],
+                            "measured_item": net.nodes[sense[1]]["tag"] if sense[0] == "item" else "",
+                            "measured_line": emitted[id(sense[1])] if sense[0] == "line" else None})
 
     origin = " ".join(str(v) for v in (model.originatingSystemName, model.originatingSystemVersion)
                       if isinstance(v, str) and v)
@@ -500,6 +660,7 @@ def reading(path: Path, strict: bool) -> dict:
         "source": path.name,
         "units_system": {"temperature": "C", "pressure": "bar", "massflow": "kg/h", "energy": "kW"},
         "units": units,
+        "controllers": controllers,
         "streams" if is_process else "lines": lines,
         "process": {"description": "", "class": "", "compounds": compounds,
                     "evidence": "DEXPI " + ("process" if is_process else "plant") + " model" + (", from " + origin if origin else "")},
