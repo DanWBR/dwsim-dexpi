@@ -1,0 +1,1406 @@
+<!-- Generated with pyDEXPI 2.0.0 - https://github.com/process-intelligence-research/pyDEXPI -->
+<Model name="example" uri="http://www.example.org">
+  <Import prefix="Core" source="https://data.dexpi.org/models/2.0.1/Core.xml"/>
+  <Import prefix="Plant" source="https://data.dexpi.org/models/2.0.1/Plant.xml"/>
+  <Import prefix="Process" source="https://data.dexpi.org/models/2.0.1/Process.xml"/>
+  <Object id="EngineeringModel_Synthetic" type="Core/EngineeringModel">
+    <Components property="ConceptualModel">
+      <Object id="ProcessModel_Synthetic" type="Process/ProcessModel">
+        <Components property="Roles">
+          <Object id="Role_Outlet" type="Core/Role">
+            <Data property="Name">
+              <String>Outlet</String>
+            </Data>
+          </Object>
+          <Object id="Role_Feed" type="Core/Role">
+            <Data property="Name">
+              <String>Feed</String>
+            </Data>
+          </Object>
+          <Object id="Role_BottomProduct" type="Core/Role">
+            <Data property="Name">
+              <String>BottomProduct</String>
+            </Data>
+          </Object>
+          <Object id="Role_Inlet" type="Core/Role">
+            <Data property="Name">
+              <String>Inlet</String>
+            </Data>
+          </Object>
+          <Object id="Role_Monitored" type="Core/Role">
+            <Data property="Name">
+              <String>Monitored</String>
+            </Data>
+          </Object>
+          <Object id="Role_Input" type="Core/Role">
+            <Data property="Name">
+              <String>Input</String>
+            </Data>
+          </Object>
+          <Object id="Role_Output" type="Core/Role">
+            <Data property="Name">
+              <String>Output</String>
+            </Data>
+          </Object>
+        </Components>
+        <Components property="InstrumentationSystemActivities">
+          <Object id="InstrumentationSystem_PIC101" type="Process/Process.InstrumentationSystemActivity">
+            <Components property="InstrumentationActivities">
+              <Object id="Activity_PT101" type="Process/Process.MeasuringProcessVariable">
+                <Components property="InformationPorts">
+                  <Object id="Port_TransmitterIn" type="Process/Process.InformationPort">
+                    <References objects="#Role_Input" property="PerformedRoles"/>
+                    <References objects="#InformationFlow_TrayPressure" property="ConnectorReference"/>
+                    <Data property="Identifier">
+                      <String>PT-101.1</String>
+                    </Data>
+                    <Data property="NominalDirection">
+                      <DataReference data="Process/Enumerations.PortDirection.Inlet"/>
+                    </Data>
+                  </Object>
+                  <Object id="Port_TransmitterOut" type="Process/Process.InformationPort">
+                    <References objects="#Role_Output" property="PerformedRoles"/>
+                    <References objects="#InformationFlow_FeedSignal" property="ConnectorReference"/>
+                    <Data property="Identifier">
+                      <String>PT-101.2</String>
+                    </Data>
+                    <Data property="NominalDirection">
+                      <DataReference data="Process/Enumerations.PortDirection.Outlet"/>
+                    </Data>
+                  </Object>
+                </Components>
+                <References objects="#TrayPressure" property="MeasuredVariableReference"/>
+                <References objects="#Detail_FeedTray" property="ProcessStepDetailReference"/>
+                <Data property="Description">
+                  <AggregatedDataValue type="Core/DataTypes.MultiLanguageString">
+                    <Data property="SingleLanguageStrings">
+                      <AggregatedDataValue type="Core/DataTypes.SingleLanguageString">
+                        <Data property="Language">
+                          <String>en</String>
+                        </Data>
+                        <Data property="Value">
+                          <String>Measures the feed tray pressure</String>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                  </AggregatedDataValue>
+                </Data>
+                <Data property="Identifier">
+                  <String>PT-101</String>
+                </Data>
+                <Data property="Label">
+                  <String>Feed tray pressure</String>
+                </Data>
+                <Data property="MeasuredVariable">
+                  <DataReference data="Process/Enumerations.MeasuredQuantity.Pressure"/>
+                </Data>
+              </Object>
+            </Components>
+            <Data property="Description">
+              <AggregatedDataValue type="Core/DataTypes.MultiLanguageString">
+                <Data property="SingleLanguageStrings">
+                  <AggregatedDataValue type="Core/DataTypes.SingleLanguageString">
+                    <Data property="Language">
+                      <String>en</String>
+                    </Data>
+                    <Data property="Value">
+                      <String>Feed tray pressure loop</String>
+                    </Data>
+                  </AggregatedDataValue>
+                </Data>
+              </AggregatedDataValue>
+            </Data>
+            <Data property="Identifier">
+              <String>PIC-101</String>
+            </Data>
+            <Data property="Label">
+              <String>Feed tray pressure loop</String>
+            </Data>
+          </Object>
+        </Components>
+        <Components property="ListsOfMaterialComponents">
+          <Object id="ComponentList_Feed" type="Process/Process.ListOfMaterialComponents">
+            <References objects="#Component_Water #Component_Ethanol #Component_Methanol" property="Component"/>
+          </Object>
+        </Components>
+        <Components property="MaterialComponents">
+          <Object id="Component_Ethanol" type="Process/Process.PureMaterialComponent">
+            <Data property="Identifier">
+              <String>C2H5OH</String>
+            </Data>
+            <Data property="Label">
+              <String>Ethanol</String>
+            </Data>
+            <Data property="ChEBI_Identifier">
+              <String>CHEBI:16236</String>
+            </Data>
+            <Data property="IUPAC_Identifier">
+              <String>ethanol</String>
+            </Data>
+          </Object>
+          <Object id="Component_Methanol" type="Process/Process.PureMaterialComponent">
+            <Data property="Identifier">
+              <String>CH3OH</String>
+            </Data>
+            <Data property="Label">
+              <String>Methanol</String>
+            </Data>
+            <Data property="ChEBI_Identifier">
+              <String>CHEBI:17790</String>
+            </Data>
+            <Data property="IUPAC_Identifier">
+              <String>methanol</String>
+            </Data>
+          </Object>
+          <Object id="Component_Water" type="Process/Process.PureMaterialComponent">
+            <Data property="Identifier">
+              <String>H2O</String>
+            </Data>
+            <Data property="Label">
+              <String>Water</String>
+            </Data>
+            <Data property="ChEBI_Identifier">
+              <String>CHEBI:15377</String>
+            </Data>
+            <Data property="IUPAC_Identifier">
+              <String>oxidane</String>
+            </Data>
+          </Object>
+        </Components>
+        <Components property="MaterialStates">
+          <Object id="MaterialState_Feed" type="Process/Process.MaterialState">
+            <Components property="Phases">
+              <Object id="MaterialStateType_Liquid" type="Process/Process.MaterialStateType">
+                <Components property="Composition">
+                  <Object id="Composition_Liquid" type="Process/Process.Composition">
+                    <Components property="MassFlow">
+                      <Object id="MassFlow_Liquid_Water" type="Core/QualifiedValue">
+                        <Data property="DisplayText">
+                          <Undefined/>
+                        </Data>
+                        <Data property="Value">
+                          <AggregatedDataValue type="Core/PhysicalQuantities.PhysicalQuantity">
+                            <Data property="Unit">
+                              <DataReference data="Core/PhysicalQuantities.MassFlowRateUnit.KilogramPerHour"/>
+                            </Data>
+                            <Data property="Value">
+                              <Double>468.75</Double>
+                            </Data>
+                          </AggregatedDataValue>
+                        </Data>
+                      </Object>
+                      <Object id="MassFlow_Liquid_Ethanol" type="Core/QualifiedValue">
+                        <Data property="DisplayText">
+                          <Undefined/>
+                        </Data>
+                        <Data property="Value">
+                          <AggregatedDataValue type="Core/PhysicalQuantities.PhysicalQuantity">
+                            <Data property="Unit">
+                              <DataReference data="Core/PhysicalQuantities.MassFlowRateUnit.KilogramPerHour"/>
+                            </Data>
+                            <Data property="Value">
+                              <Double>206.25</Double>
+                            </Data>
+                          </AggregatedDataValue>
+                        </Data>
+                      </Object>
+                      <Object id="MassFlow_Liquid_Methanol" type="Core/QualifiedValue">
+                        <Data property="DisplayText">
+                          <Undefined/>
+                        </Data>
+                        <Data property="Value">
+                          <AggregatedDataValue type="Core/PhysicalQuantities.PhysicalQuantity">
+                            <Data property="Unit">
+                              <DataReference data="Core/PhysicalQuantities.MassFlowRateUnit.KilogramPerHour"/>
+                            </Data>
+                            <Data property="Value">
+                              <Double>75.0</Double>
+                            </Data>
+                          </AggregatedDataValue>
+                        </Data>
+                      </Object>
+                    </Components>
+                    <Components property="MassFractions">
+                      <Object id="MassFractions_Liquid" type="Core/QualifiedValue">
+                        <Data property="DisplayText">
+                          <String>62.5 % / 27.5 % / 10 %</String>
+                        </Data>
+                        <Data property="Value">
+                          <AggregatedDataValue type="Core/PhysicalQuantities.PhysicalQuantityVector">
+                            <Data property="Unit">
+                              <DataReference data="Core/PhysicalQuantities.RatioUnit.Percent"/>
+                            </Data>
+                            <Data property="Values">
+                              <Double>62.5</Double>
+                              <Double>27.5</Double>
+                              <Double>10.0</Double>
+                            </Data>
+                          </AggregatedDataValue>
+                        </Data>
+                      </Object>
+                    </Components>
+                    <Data property="Display">
+                      <DataReference data="Process/Enumerations.CompositionDisplay.Percent"/>
+                    </Data>
+                  </Object>
+                </Components>
+                <Components property="MassFlow">
+                  <Object id="MassFlow_Liquid" type="Core/QualifiedValue">
+                    <Data property="DisplayText">
+                      <String>750 kg/h</String>
+                    </Data>
+                    <Data property="Value">
+                      <AggregatedDataValue type="Core/PhysicalQuantities.PhysicalQuantity">
+                        <Data property="Unit">
+                          <DataReference data="Core/PhysicalQuantities.MassFlowRateUnit.KilogramPerHour"/>
+                        </Data>
+                        <Data property="Value">
+                          <Double>750.0</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                  </Object>
+                </Components>
+                <Data property="Description">
+                  <AggregatedDataValue type="Core/DataTypes.MultiLanguageString">
+                    <Data property="SingleLanguageStrings">
+                      <AggregatedDataValue type="Core/DataTypes.SingleLanguageString">
+                        <Data property="Language">
+                          <String>en</String>
+                        </Data>
+                        <Data property="Value">
+                          <String>Liquid part of the column feed</String>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                  </AggregatedDataValue>
+                </Data>
+                <Data property="Identifier">
+                  <String>MST-L</String>
+                </Data>
+                <Data property="Label">
+                  <String>Liquid feed</String>
+                </Data>
+              </Object>
+              <Object id="MaterialStateType_Vapour" type="Process/Process.MaterialStateType">
+                <Components property="Composition">
+                  <Object id="Composition_Vapour" type="Process/Process.Composition">
+                    <Components property="MassFlow">
+                      <Object id="MassFlow_Vapour_Water" type="Core/QualifiedValue">
+                        <Data property="DisplayText">
+                          <Undefined/>
+                        </Data>
+                        <Data property="Value">
+                          <AggregatedDataValue type="Core/PhysicalQuantities.PhysicalQuantity">
+                            <Data property="Unit">
+                              <DataReference data="Core/PhysicalQuantities.MassFlowRateUnit.KilogramPerHour"/>
+                            </Data>
+                            <Data property="Value">
+                              <Double>43.75</Double>
+                            </Data>
+                          </AggregatedDataValue>
+                        </Data>
+                      </Object>
+                      <Object id="MassFlow_Vapour_Ethanol" type="Core/QualifiedValue">
+                        <Data property="DisplayText">
+                          <Undefined/>
+                        </Data>
+                        <Data property="Value">
+                          <AggregatedDataValue type="Core/PhysicalQuantities.PhysicalQuantity">
+                            <Data property="Unit">
+                              <DataReference data="Core/PhysicalQuantities.MassFlowRateUnit.KilogramPerHour"/>
+                            </Data>
+                            <Data property="Value">
+                              <Double>131.25</Double>
+                            </Data>
+                          </AggregatedDataValue>
+                        </Data>
+                      </Object>
+                      <Object id="MassFlow_Vapour_Methanol" type="Core/QualifiedValue">
+                        <Data property="DisplayText">
+                          <Undefined/>
+                        </Data>
+                        <Data property="Value">
+                          <AggregatedDataValue type="Core/PhysicalQuantities.PhysicalQuantity">
+                            <Data property="Unit">
+                              <DataReference data="Core/PhysicalQuantities.MassFlowRateUnit.KilogramPerHour"/>
+                            </Data>
+                            <Data property="Value">
+                              <Double>75.0</Double>
+                            </Data>
+                          </AggregatedDataValue>
+                        </Data>
+                      </Object>
+                    </Components>
+                    <Components property="MassFractions">
+                      <Object id="MassFractions_Vapour" type="Core/QualifiedValue">
+                        <Data property="DisplayText">
+                          <String>17.5 % / 52.5 % / 30 %</String>
+                        </Data>
+                        <Data property="Value">
+                          <AggregatedDataValue type="Core/PhysicalQuantities.PhysicalQuantityVector">
+                            <Data property="Unit">
+                              <DataReference data="Core/PhysicalQuantities.RatioUnit.Percent"/>
+                            </Data>
+                            <Data property="Values">
+                              <Double>17.5</Double>
+                              <Double>52.5</Double>
+                              <Double>30.0</Double>
+                            </Data>
+                          </AggregatedDataValue>
+                        </Data>
+                      </Object>
+                    </Components>
+                    <Data property="Display">
+                      <DataReference data="Process/Enumerations.CompositionDisplay.Percent"/>
+                    </Data>
+                  </Object>
+                </Components>
+                <Components property="MassFlow">
+                  <Object id="MassFlow_Vapour" type="Core/QualifiedValue">
+                    <Data property="DisplayText">
+                      <String>250 kg/h</String>
+                    </Data>
+                    <Data property="Value">
+                      <AggregatedDataValue type="Core/PhysicalQuantities.PhysicalQuantity">
+                        <Data property="Unit">
+                          <DataReference data="Core/PhysicalQuantities.MassFlowRateUnit.KilogramPerHour"/>
+                        </Data>
+                        <Data property="Value">
+                          <Double>250.0</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                  </Object>
+                </Components>
+                <Data property="Description">
+                  <AggregatedDataValue type="Core/DataTypes.MultiLanguageString">
+                    <Data property="SingleLanguageStrings">
+                      <AggregatedDataValue type="Core/DataTypes.SingleLanguageString">
+                        <Data property="Language">
+                          <String>en</String>
+                        </Data>
+                        <Data property="Value">
+                          <String>Vapour part of the column feed</String>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                  </AggregatedDataValue>
+                </Data>
+                <Data property="Identifier">
+                  <String>MST-V</String>
+                </Data>
+                <Data property="Label">
+                  <String>Vapour feed</String>
+                </Data>
+              </Object>
+            </Components>
+            <Components property="State">
+              <Object id="MaterialStateType_Overall" type="Process/Process.MaterialStateType">
+                <Components property="Composition">
+                  <Object id="Composition_Overall" type="Process/Process.Composition">
+                    <Components property="MassFlow">
+                      <Object id="MassFlow_Overall_Water" type="Core/QualifiedValue">
+                        <Data property="DisplayText">
+                          <Undefined/>
+                        </Data>
+                        <Data property="Value">
+                          <AggregatedDataValue type="Core/PhysicalQuantities.PhysicalQuantity">
+                            <Data property="Unit">
+                              <DataReference data="Core/PhysicalQuantities.MassFlowRateUnit.KilogramPerHour"/>
+                            </Data>
+                            <Data property="Value">
+                              <Double>512.5</Double>
+                            </Data>
+                          </AggregatedDataValue>
+                        </Data>
+                      </Object>
+                      <Object id="MassFlow_Overall_Ethanol" type="Core/QualifiedValue">
+                        <Data property="DisplayText">
+                          <Undefined/>
+                        </Data>
+                        <Data property="Value">
+                          <AggregatedDataValue type="Core/PhysicalQuantities.PhysicalQuantity">
+                            <Data property="Unit">
+                              <DataReference data="Core/PhysicalQuantities.MassFlowRateUnit.KilogramPerHour"/>
+                            </Data>
+                            <Data property="Value">
+                              <Double>337.5</Double>
+                            </Data>
+                          </AggregatedDataValue>
+                        </Data>
+                      </Object>
+                      <Object id="MassFlow_Overall_Methanol" type="Core/QualifiedValue">
+                        <Data property="DisplayText">
+                          <Undefined/>
+                        </Data>
+                        <Data property="Value">
+                          <AggregatedDataValue type="Core/PhysicalQuantities.PhysicalQuantity">
+                            <Data property="Unit">
+                              <DataReference data="Core/PhysicalQuantities.MassFlowRateUnit.KilogramPerHour"/>
+                            </Data>
+                            <Data property="Value">
+                              <Double>150.0</Double>
+                            </Data>
+                          </AggregatedDataValue>
+                        </Data>
+                      </Object>
+                    </Components>
+                    <Components property="MassFractions">
+                      <Object id="MassFractions_Overall" type="Core/QualifiedValue">
+                        <Data property="DisplayText">
+                          <String>51.25 % / 33.75 % / 15 %</String>
+                        </Data>
+                        <Data property="Value">
+                          <AggregatedDataValue type="Core/PhysicalQuantities.PhysicalQuantityVector">
+                            <Data property="Unit">
+                              <DataReference data="Core/PhysicalQuantities.RatioUnit.Percent"/>
+                            </Data>
+                            <Data property="Values">
+                              <Double>51.25</Double>
+                              <Double>33.75</Double>
+                              <Double>15.0</Double>
+                            </Data>
+                          </AggregatedDataValue>
+                        </Data>
+                      </Object>
+                    </Components>
+                    <Data property="Display">
+                      <DataReference data="Process/Enumerations.CompositionDisplay.Percent"/>
+                    </Data>
+                  </Object>
+                </Components>
+                <Components property="MassFlow">
+                  <Object id="MassFlow_Overall" type="Core/QualifiedValue">
+                    <Data property="DisplayText">
+                      <String>1000 kg/h</String>
+                    </Data>
+                    <Data property="Value">
+                      <AggregatedDataValue type="Core/PhysicalQuantities.PhysicalQuantity">
+                        <Data property="Unit">
+                          <DataReference data="Core/PhysicalQuantities.MassFlowRateUnit.KilogramPerHour"/>
+                        </Data>
+                        <Data property="Value">
+                          <Double>1000.0</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                  </Object>
+                </Components>
+                <Data property="Description">
+                  <AggregatedDataValue type="Core/DataTypes.MultiLanguageString">
+                    <Data property="SingleLanguageStrings">
+                      <AggregatedDataValue type="Core/DataTypes.SingleLanguageString">
+                        <Data property="Language">
+                          <String>en</String>
+                        </Data>
+                        <Data property="Value">
+                          <String>Overall part of the column feed</String>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                  </AggregatedDataValue>
+                </Data>
+                <Data property="Identifier">
+                  <String>MST-O</String>
+                </Data>
+                <Data property="Label">
+                  <String>Overall feed</String>
+                </Data>
+              </Object>
+            </Components>
+            <Data property="Description">
+              <String>Two-phase column feed: 75 % liquid, 25 % vapour by mass</String>
+            </Data>
+            <Data property="Identifier">
+              <String>MS-1</String>
+            </Data>
+            <Data property="Label">
+              <String>Column feed</String>
+            </Data>
+          </Object>
+        </Components>
+        <Components property="MaterialTemplates">
+          <Object id="MaterialTemplate_Feed" type="Process/Process.MaterialTemplate">
+            <References objects="#ComponentList_Feed" property="ListOfComponents"/>
+            <Data property="Description">
+              <AggregatedDataValue type="Core/DataTypes.MultiLanguageString">
+                <Data property="SingleLanguageStrings">
+                  <AggregatedDataValue type="Core/DataTypes.SingleLanguageString">
+                    <Data property="Language">
+                      <String>en</String>
+                    </Data>
+                    <Data property="Value">
+                      <String>Aqueous alcohol feed, in two phases</String>
+                    </Data>
+                  </AggregatedDataValue>
+                </Data>
+              </AggregatedDataValue>
+            </Data>
+            <Data property="Identifier">
+              <String>MT-1</String>
+            </Data>
+            <Data property="Label">
+              <String>Water, ethanol, methanol</String>
+            </Data>
+            <Data property="NumberOfMaterialComponents">
+              <Integer>3</Integer>
+            </Data>
+            <Data property="NumberOfPhases">
+              <Integer>2</Integer>
+            </Data>
+            <Data property="PhaseLabel">
+              <String>Liquid</String>
+              <String>Vapour</String>
+            </Data>
+          </Object>
+        </Components>
+        <Components property="ProcessConnections">
+          <Object id="Stream_Feed" type="Process/Process.Stream">
+            <Components property="MassFlow">
+              <Object id="FeedMassFlow" type="Core/QualifiedValue">
+                <Data property="DisplayText">
+                  <Undefined/>
+                </Data>
+                <Data property="Provenance">
+                  <DataReference data="Core/DataTypes.QuantityProvenance.Specified"/>
+                </Data>
+                <Data property="Scope">
+                  <DataReference data="Core/DataTypes.Scope.Design"/>
+                </Data>
+                <Data property="Value">
+                  <AggregatedDataValue type="Core/PhysicalQuantities.PhysicalQuantity">
+                    <Data property="Unit">
+                      <DataReference data="Core/PhysicalQuantities.MassFlowRateUnit.KilogramPerHour"/>
+                    </Data>
+                    <Data property="Value">
+                      <Double>1000.0</Double>
+                    </Data>
+                  </AggregatedDataValue>
+                </Data>
+              </Object>
+            </Components>
+            <Components property="Pressure">
+              <Object id="FeedPressure" type="Core/QualifiedValue">
+                <Data property="DisplayText">
+                  <Undefined/>
+                </Data>
+                <Data property="Value">
+                  <AggregatedDataValue type="Core/PhysicalQuantities.PhysicalQuantity">
+                    <Data property="Unit">
+                      <DataReference data="Core/PhysicalQuantities.PressureAbsoluteUnit.Bar"/>
+                    </Data>
+                    <Data property="Value">
+                      <Double>1.5</Double>
+                    </Data>
+                  </AggregatedDataValue>
+                </Data>
+              </Object>
+            </Components>
+            <Components property="Temperature">
+              <Object id="FeedTemperature" type="Core/QualifiedValue">
+                <Data property="DisplayText">
+                  <Undefined/>
+                </Data>
+                <Data property="Value">
+                  <AggregatedDataValue type="Core/PhysicalQuantities.PhysicalQuantity">
+                    <Data property="Unit">
+                      <DataReference data="Core/PhysicalQuantities.TemperatureUnit.DegreeCelsius"/>
+                    </Data>
+                    <Data property="Value">
+                      <Double>78.0</Double>
+                    </Data>
+                  </AggregatedDataValue>
+                </Data>
+              </Object>
+            </Components>
+            <References objects="#Port_SourceOutlet" property="Source"/>
+            <References objects="#Port_ColumnFeed" property="Target"/>
+            <References objects="#MaterialState_Feed" property="MaterialStateReference"/>
+            <References objects="#MaterialTemplate_Feed" property="MaterialTemplateReference"/>
+            <Data property="Identifier">
+              <String>S-1</String>
+            </Data>
+            <Data property="Label">
+              <String>Column feed</String>
+            </Data>
+          </Object>
+          <Object id="Stream_Bottoms" type="Process/Process.Stream">
+            <References objects="#Port_ColumnBottoms" property="Source"/>
+            <References objects="#Port_SinkInlet" property="Target"/>
+            <References objects="#MaterialTemplate_Feed" property="MaterialTemplateReference"/>
+            <Data property="Identifier">
+              <String>S-2</String>
+            </Data>
+            <Data property="Label">
+              <String>Bottom product</String>
+            </Data>
+          </Object>
+          <Object id="InformationFlow_TrayPressure" type="Process/Process.InformationFlow">
+            <Components property="InformationValue">
+              <Object id="InformationFlow_TrayPressure_Value" type="Process/Process.InformationVariant">
+                <Data property="BooleanValue">
+                  <Boolean>false</Boolean>
+                </Data>
+                <Data property="DoubleValue">
+                  <Double>1.2</Double>
+                </Data>
+                <Data property="IntegerValue">
+                  <Integer>0</Integer>
+                </Data>
+                <Data property="VariantType">
+                  <DataReference data="Process/Enumerations.InformationVariantType.Double"/>
+                </Data>
+                <Data property="VectorSize">
+                  <Integer>1</Integer>
+                </Data>
+              </Object>
+            </Components>
+            <References objects="#Port_TraySignal" property="Source"/>
+            <References objects="#Port_TransmitterIn" property="Target"/>
+            <Data property="Identifier">
+              <String>I-1</String>
+            </Data>
+            <Data property="Label">
+              <String>Tray pressure</String>
+            </Data>
+          </Object>
+          <Object id="InformationFlow_FeedSignal" type="Process/Process.InformationFlow">
+            <Components property="InformationValue">
+              <Object id="InformationFlow_FeedSignal_Value" type="Process/Process.InformationVariant">
+                <Data property="BooleanValue">
+                  <Boolean>false</Boolean>
+                </Data>
+                <Data property="DoubleValue">
+                  <Double>1.2</Double>
+                </Data>
+                <Data property="IntegerValue">
+                  <Integer>0</Integer>
+                </Data>
+                <Data property="VariantType">
+                  <DataReference data="Process/Enumerations.InformationVariantType.Double"/>
+                </Data>
+                <Data property="VectorSize">
+                  <Integer>1</Integer>
+                </Data>
+              </Object>
+            </Components>
+            <References objects="#Port_TransmitterOut" property="Source"/>
+            <References objects="#Port_SourceSignal" property="Target"/>
+            <Data property="Identifier">
+              <String>I-2</String>
+            </Data>
+            <Data property="Label">
+              <String>Feed signal</String>
+            </Data>
+          </Object>
+        </Components>
+        <Components property="ProcessSteps">
+          <Object id="Step_Feed" type="Process/Process.Source">
+            <Components property="Ports">
+              <Object id="Port_SourceOutlet" type="Process/Process.MaterialPort">
+                <References objects="#Role_Outlet" property="PerformedRoles"/>
+                <References objects="#Stream_Feed" property="ConnectorReference"/>
+                <Data property="Identifier">
+                  <String>N1</String>
+                </Data>
+                <Data property="NominalDirection">
+                  <DataReference data="Process/Enumerations.PortDirection.Outlet"/>
+                </Data>
+              </Object>
+              <Object id="Port_SourceSignal" type="Process/Process.InformationPort">
+                <References objects="#Role_Input" property="PerformedRoles"/>
+                <References objects="#InformationFlow_FeedSignal" property="ConnectorReference"/>
+                <Data property="Identifier">
+                  <String>S1</String>
+                </Data>
+                <Data property="NominalDirection">
+                  <DataReference data="Process/Enumerations.PortDirection.Inlet"/>
+                </Data>
+              </Object>
+            </Components>
+            <Data property="Identifier">
+              <String>FEED</String>
+            </Data>
+            <Data property="Label">
+              <String>Feed</String>
+            </Data>
+          </Object>
+          <Object id="Step_Column" type="Process/Process.Distilling">
+            <Components property="Ports">
+              <Object id="Port_ColumnFeed" type="Process/Process.MaterialPort">
+                <References objects="#Role_Feed" property="PerformedRoles"/>
+                <References objects="#Stream_Feed" property="ConnectorReference"/>
+                <References objects="#Port_StrippingFeed" property="SubReference"/>
+                <References objects="#MaterialTemplate_Feed" property="MaterialTemplateReference"/>
+                <Data property="Identifier">
+                  <String>N2</String>
+                </Data>
+                <Data property="NominalDirection">
+                  <DataReference data="Process/Enumerations.PortDirection.Inlet"/>
+                </Data>
+              </Object>
+              <Object id="Port_ColumnBottoms" type="Process/Process.MaterialPort">
+                <References objects="#Role_BottomProduct" property="PerformedRoles"/>
+                <References objects="#Stream_Bottoms" property="ConnectorReference"/>
+                <Data property="Identifier">
+                  <String>N3</String>
+                </Data>
+                <Data property="NominalDirection">
+                  <DataReference data="Process/Enumerations.PortDirection.Outlet"/>
+                </Data>
+              </Object>
+            </Components>
+            <Components property="ProcessStepDetails">
+              <Object id="Detail_FeedTray" type="Process/Process.ContactingOnTray">
+                <Components property="Ports">
+                  <Object id="Port_TraySignal" type="Process/Process.InformationPort">
+                    <References objects="#Role_Output" property="PerformedRoles"/>
+                    <References objects="#InformationFlow_TrayPressure" property="ConnectorReference"/>
+                    <Data property="Identifier">
+                      <String>T1</String>
+                    </Data>
+                    <Data property="NominalDirection">
+                      <DataReference data="Process/Enumerations.PortDirection.Outlet"/>
+                    </Data>
+                  </Object>
+                </Components>
+                <Components property="Pressure">
+                  <Object id="TrayPressure" type="Core/QualifiedValue">
+                    <Data property="DisplayText">
+                      <Undefined/>
+                    </Data>
+                    <Data property="Provenance">
+                      <DataReference data="Core/DataTypes.QuantityProvenance.Observed"/>
+                    </Data>
+                    <Data property="Value">
+                      <AggregatedDataValue type="Core/PhysicalQuantities.PhysicalQuantity">
+                        <Data property="Unit">
+                          <DataReference data="Core/PhysicalQuantities.PressureAbsoluteUnit.Bar"/>
+                        </Data>
+                        <Data property="Value">
+                          <Double>1.2</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                  </Object>
+                </Components>
+                <Components property="Temperature">
+                  <Object id="TrayTemperature" type="Core/QualifiedValue">
+                    <Data property="DisplayText">
+                      <Undefined/>
+                    </Data>
+                    <Data property="Value">
+                      <AggregatedDataValue type="Core/PhysicalQuantities.PhysicalQuantity">
+                        <Data property="Unit">
+                          <DataReference data="Core/PhysicalQuantities.TemperatureUnit.DegreeCelsius"/>
+                        </Data>
+                        <Data property="Value">
+                          <Double>82.5</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                  </Object>
+                </Components>
+                <References objects="#Role_Monitored" property="PerformedRoles"/>
+                <Data property="Description">
+                  <AggregatedDataValue type="Core/DataTypes.MultiLanguageString">
+                    <Data property="SingleLanguageStrings">
+                      <AggregatedDataValue type="Core/DataTypes.SingleLanguageString">
+                        <Data property="Language">
+                          <String>en</String>
+                        </Data>
+                        <Data property="Value">
+                          <String>The tray the feed enters on</String>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                  </AggregatedDataValue>
+                </Data>
+                <Data property="Identifier">
+                  <String>C-101.T12</String>
+                </Data>
+                <Data property="Label">
+                  <String>Feed tray</String>
+                </Data>
+                <Data property="Number">
+                  <Integer>12</Integer>
+                </Data>
+              </Object>
+            </Components>
+            <Components property="SubProcessSteps">
+              <Object id="Step_StrippingSection" type="Process/Process.StrippingDistilling">
+                <Components property="Ports">
+                  <Object id="Port_StrippingFeed" type="Process/Process.MaterialPort">
+                    <References objects="#Role_Feed" property="PerformedRoles"/>
+                    <References objects="#Stream_Feed" property="ConnectorReference"/>
+                    <References objects="#Port_ColumnFeed" property="SuperReference"/>
+                    <References objects="#MaterialTemplate_Feed" property="MaterialTemplateReference"/>
+                    <Data property="Identifier">
+                      <String>N2.1</String>
+                    </Data>
+                    <Data property="NominalDirection">
+                      <DataReference data="Process/Enumerations.PortDirection.Inlet"/>
+                    </Data>
+                  </Object>
+                </Components>
+                <Data property="HierarchyLevel">
+                  <DataReference data="Process/Enumerations.ProcessStepHierarchyLevel.ElementaryFunction"/>
+                </Data>
+                <Data property="Identifier">
+                  <String>C-101.S</String>
+                </Data>
+                <Data property="Label">
+                  <String>Stripping section</String>
+                </Data>
+              </Object>
+            </Components>
+            <Data property="HierarchyLevel">
+              <DataReference data="Process/Enumerations.ProcessStepHierarchyLevel.UnitOperation"/>
+            </Data>
+            <Data property="Identifier">
+              <String>C-101</String>
+            </Data>
+            <Data property="Label">
+              <String>Distillation column</String>
+            </Data>
+          </Object>
+          <Object id="Step_Product" type="Process/Process.Sink">
+            <Components property="Ports">
+              <Object id="Port_SinkInlet" type="Process/Process.MaterialPort">
+                <References objects="#Role_Inlet" property="PerformedRoles"/>
+                <References objects="#Stream_Bottoms" property="ConnectorReference"/>
+                <Data property="Identifier">
+                  <String>N4</String>
+                </Data>
+                <Data property="NominalDirection">
+                  <DataReference data="Process/Enumerations.PortDirection.Inlet"/>
+                </Data>
+              </Object>
+            </Components>
+            <Data property="Identifier">
+              <String>PRODUCT</String>
+            </Data>
+            <Data property="Label">
+              <String>Bottom product</String>
+            </Data>
+          </Object>
+        </Components>
+      </Object>
+    </Components>
+    <Components property="Diagram">
+      <Object id="Diagram_Synthetic" type="Core/Diagram.Diagram">
+        <Components property="Groups">
+          <Object id="Drawing_Step_Feed" type="Core/Diagram.RepresentationGroup">
+            <Components property="Groups">
+              <Object id="Drawing_Step_Feed_Static" type="Core/Diagram.Static">
+                <Components property="Elements">
+                  <Object id="Drawing_Step_Feed_Outline" type="Core/Diagram.PolyLine">
+                    <Data property="Points">
+                      <AggregatedDataValue type="Core/Diagram.Point">
+                        <Data property="X">
+                          <Double>40.0</Double>
+                        </Data>
+                        <Data property="Y">
+                          <Double>130.0</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                      <AggregatedDataValue type="Core/Diagram.Point">
+                        <Data property="X">
+                          <Double>100.0</Double>
+                        </Data>
+                        <Data property="Y">
+                          <Double>130.0</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                      <AggregatedDataValue type="Core/Diagram.Point">
+                        <Data property="X">
+                          <Double>100.0</Double>
+                        </Data>
+                        <Data property="Y">
+                          <Double>170.0</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                      <AggregatedDataValue type="Core/Diagram.Point">
+                        <Data property="X">
+                          <Double>40.0</Double>
+                        </Data>
+                        <Data property="Y">
+                          <Double>170.0</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                      <AggregatedDataValue type="Core/Diagram.Point">
+                        <Data property="X">
+                          <Double>40.0</Double>
+                        </Data>
+                        <Data property="Y">
+                          <Double>130.0</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                    <Data property="Stroke">
+                      <AggregatedDataValue type="Core/Diagram.Stroke">
+                        <Data property="Color">
+                          <AggregatedDataValue type="Core/Diagram.Color">
+                            <Data property="B">
+                              <Integer>0</Integer>
+                            </Data>
+                            <Data property="G">
+                              <Integer>0</Integer>
+                            </Data>
+                            <Data property="R">
+                              <Integer>0</Integer>
+                            </Data>
+                          </AggregatedDataValue>
+                        </Data>
+                        <Data property="DashStyle">
+                          <DataReference data="Core/Diagram.DashStyle.Solid"/>
+                        </Data>
+                        <Data property="Width">
+                          <Double>0.5</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                  </Object>
+                </Components>
+              </Object>
+            </Components>
+            <Components property="NodePositions">
+              <Object id="Position_SourceOutlet" type="Process/Diagram.PortNodePosition">
+                <References objects="#Port_SourceOutlet" property="Port"/>
+                <Data property="Position">
+                  <AggregatedDataValue type="Core/Diagram.Point">
+                    <Data property="X">
+                      <Double>100.0</Double>
+                    </Data>
+                    <Data property="Y">
+                      <Double>150.0</Double>
+                    </Data>
+                  </AggregatedDataValue>
+                </Data>
+              </Object>
+            </Components>
+            <References objects="#Step_Feed" property="Represents"/>
+          </Object>
+          <Object id="Drawing_Step_Column" type="Core/Diagram.RepresentationGroup">
+            <Components property="Groups">
+              <Object id="Drawing_Step_Column_Static" type="Core/Diagram.Static">
+                <Components property="Elements">
+                  <Object id="Drawing_Step_Column_Outline" type="Core/Diagram.PolyLine">
+                    <Data property="Points">
+                      <AggregatedDataValue type="Core/Diagram.Point">
+                        <Data property="X">
+                          <Double>180.0</Double>
+                        </Data>
+                        <Data property="Y">
+                          <Double>60.0</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                      <AggregatedDataValue type="Core/Diagram.Point">
+                        <Data property="X">
+                          <Double>240.0</Double>
+                        </Data>
+                        <Data property="Y">
+                          <Double>60.0</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                      <AggregatedDataValue type="Core/Diagram.Point">
+                        <Data property="X">
+                          <Double>240.0</Double>
+                        </Data>
+                        <Data property="Y">
+                          <Double>240.0</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                      <AggregatedDataValue type="Core/Diagram.Point">
+                        <Data property="X">
+                          <Double>180.0</Double>
+                        </Data>
+                        <Data property="Y">
+                          <Double>240.0</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                      <AggregatedDataValue type="Core/Diagram.Point">
+                        <Data property="X">
+                          <Double>180.0</Double>
+                        </Data>
+                        <Data property="Y">
+                          <Double>60.0</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                    <Data property="Stroke">
+                      <AggregatedDataValue type="Core/Diagram.Stroke">
+                        <Data property="Color">
+                          <AggregatedDataValue type="Core/Diagram.Color">
+                            <Data property="B">
+                              <Integer>0</Integer>
+                            </Data>
+                            <Data property="G">
+                              <Integer>0</Integer>
+                            </Data>
+                            <Data property="R">
+                              <Integer>0</Integer>
+                            </Data>
+                          </AggregatedDataValue>
+                        </Data>
+                        <Data property="DashStyle">
+                          <DataReference data="Core/Diagram.DashStyle.Solid"/>
+                        </Data>
+                        <Data property="Width">
+                          <Double>0.5</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                  </Object>
+                </Components>
+              </Object>
+              <Object id="Drawing_Step_StrippingSection" type="Core/Diagram.RepresentationGroup">
+                <Components property="Groups">
+                  <Object id="Drawing_Step_StrippingSection_Static" type="Core/Diagram.Static">
+                    <Components property="Elements">
+                      <Object id="Drawing_Step_StrippingSection_Outline" type="Core/Diagram.PolyLine">
+                        <Data property="Points">
+                          <AggregatedDataValue type="Core/Diagram.Point">
+                            <Data property="X">
+                              <Double>185.0</Double>
+                            </Data>
+                            <Data property="Y">
+                              <Double>140.0</Double>
+                            </Data>
+                          </AggregatedDataValue>
+                          <AggregatedDataValue type="Core/Diagram.Point">
+                            <Data property="X">
+                              <Double>235.0</Double>
+                            </Data>
+                            <Data property="Y">
+                              <Double>140.0</Double>
+                            </Data>
+                          </AggregatedDataValue>
+                          <AggregatedDataValue type="Core/Diagram.Point">
+                            <Data property="X">
+                              <Double>235.0</Double>
+                            </Data>
+                            <Data property="Y">
+                              <Double>235.0</Double>
+                            </Data>
+                          </AggregatedDataValue>
+                          <AggregatedDataValue type="Core/Diagram.Point">
+                            <Data property="X">
+                              <Double>185.0</Double>
+                            </Data>
+                            <Data property="Y">
+                              <Double>235.0</Double>
+                            </Data>
+                          </AggregatedDataValue>
+                          <AggregatedDataValue type="Core/Diagram.Point">
+                            <Data property="X">
+                              <Double>185.0</Double>
+                            </Data>
+                            <Data property="Y">
+                              <Double>140.0</Double>
+                            </Data>
+                          </AggregatedDataValue>
+                        </Data>
+                        <Data property="Stroke">
+                          <AggregatedDataValue type="Core/Diagram.Stroke">
+                            <Data property="Color">
+                              <AggregatedDataValue type="Core/Diagram.Color">
+                                <Data property="B">
+                                  <Integer>0</Integer>
+                                </Data>
+                                <Data property="G">
+                                  <Integer>0</Integer>
+                                </Data>
+                                <Data property="R">
+                                  <Integer>0</Integer>
+                                </Data>
+                              </AggregatedDataValue>
+                            </Data>
+                            <Data property="DashStyle">
+                              <DataReference data="Core/Diagram.DashStyle.Solid"/>
+                            </Data>
+                            <Data property="Width">
+                              <Double>0.5</Double>
+                            </Data>
+                          </AggregatedDataValue>
+                        </Data>
+                      </Object>
+                    </Components>
+                  </Object>
+                </Components>
+                <Components property="NodePositions">
+                  <Object id="Position_StrippingFeed" type="Process/Diagram.PortNodePosition">
+                    <References objects="#Port_StrippingFeed" property="Port"/>
+                    <Data property="Position">
+                      <AggregatedDataValue type="Core/Diagram.Point">
+                        <Data property="X">
+                          <Double>185.0</Double>
+                        </Data>
+                        <Data property="Y">
+                          <Double>150.0</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                  </Object>
+                </Components>
+                <References objects="#Step_StrippingSection" property="Represents"/>
+              </Object>
+            </Components>
+            <Components property="NodePositions">
+              <Object id="Position_ColumnFeed" type="Process/Diagram.PortNodePosition">
+                <References objects="#Port_ColumnFeed" property="Port"/>
+                <Data property="Position">
+                  <AggregatedDataValue type="Core/Diagram.Point">
+                    <Data property="X">
+                      <Double>180.0</Double>
+                    </Data>
+                    <Data property="Y">
+                      <Double>150.0</Double>
+                    </Data>
+                  </AggregatedDataValue>
+                </Data>
+              </Object>
+              <Object id="Position_ColumnBottoms" type="Process/Diagram.PortNodePosition">
+                <References objects="#Port_ColumnBottoms" property="Port"/>
+                <Data property="Position">
+                  <AggregatedDataValue type="Core/Diagram.Point">
+                    <Data property="X">
+                      <Double>210.0</Double>
+                    </Data>
+                    <Data property="Y">
+                      <Double>240.0</Double>
+                    </Data>
+                  </AggregatedDataValue>
+                </Data>
+              </Object>
+            </Components>
+            <References objects="#Step_Column" property="Represents"/>
+          </Object>
+          <Object id="Drawing_Step_Product" type="Core/Diagram.RepresentationGroup">
+            <Components property="Groups">
+              <Object id="Drawing_Step_Product_Static" type="Core/Diagram.Static">
+                <Components property="Elements">
+                  <Object id="Drawing_Step_Product_Outline" type="Core/Diagram.PolyLine">
+                    <Data property="Points">
+                      <AggregatedDataValue type="Core/Diagram.Point">
+                        <Data property="X">
+                          <Double>300.0</Double>
+                        </Data>
+                        <Data property="Y">
+                          <Double>120.0</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                      <AggregatedDataValue type="Core/Diagram.Point">
+                        <Data property="X">
+                          <Double>340.0</Double>
+                        </Data>
+                        <Data property="Y">
+                          <Double>120.0</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                      <AggregatedDataValue type="Core/Diagram.Point">
+                        <Data property="X">
+                          <Double>340.0</Double>
+                        </Data>
+                        <Data property="Y">
+                          <Double>200.0</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                      <AggregatedDataValue type="Core/Diagram.Point">
+                        <Data property="X">
+                          <Double>300.0</Double>
+                        </Data>
+                        <Data property="Y">
+                          <Double>200.0</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                      <AggregatedDataValue type="Core/Diagram.Point">
+                        <Data property="X">
+                          <Double>300.0</Double>
+                        </Data>
+                        <Data property="Y">
+                          <Double>120.0</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                    <Data property="Stroke">
+                      <AggregatedDataValue type="Core/Diagram.Stroke">
+                        <Data property="Color">
+                          <AggregatedDataValue type="Core/Diagram.Color">
+                            <Data property="B">
+                              <Integer>0</Integer>
+                            </Data>
+                            <Data property="G">
+                              <Integer>0</Integer>
+                            </Data>
+                            <Data property="R">
+                              <Integer>0</Integer>
+                            </Data>
+                          </AggregatedDataValue>
+                        </Data>
+                        <Data property="DashStyle">
+                          <DataReference data="Core/Diagram.DashStyle.Solid"/>
+                        </Data>
+                        <Data property="Width">
+                          <Double>0.5</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                  </Object>
+                </Components>
+              </Object>
+            </Components>
+            <Components property="NodePositions">
+              <Object id="Position_SinkInlet" type="Process/Diagram.PortNodePosition">
+                <References objects="#Port_SinkInlet" property="Port"/>
+                <Data property="Position">
+                  <AggregatedDataValue type="Core/Diagram.Point">
+                    <Data property="X">
+                      <Double>320.0</Double>
+                    </Data>
+                    <Data property="Y">
+                      <Double>200.0</Double>
+                    </Data>
+                  </AggregatedDataValue>
+                </Data>
+              </Object>
+            </Components>
+            <References objects="#Step_Product" property="Represents"/>
+          </Object>
+          <Object id="Drawing_Stream_Feed" type="Core/Diagram.RepresentationGroup">
+            <Components property="Groups">
+              <Object id="Drawing_Stream_Feed_Static" type="Core/Diagram.Static">
+                <Components property="Elements">
+                  <Object id="Line_Stream_Feed" type="Core/Diagram.ConnectorLine">
+                    <References objects="#Position_SourceOutlet" property="Source"/>
+                    <References objects="#Position_ColumnFeed" property="Target"/>
+                    <Data property="Stroke">
+                      <AggregatedDataValue type="Core/Diagram.Stroke">
+                        <Data property="Color">
+                          <AggregatedDataValue type="Core/Diagram.Color">
+                            <Data property="B">
+                              <Integer>0</Integer>
+                            </Data>
+                            <Data property="G">
+                              <Integer>0</Integer>
+                            </Data>
+                            <Data property="R">
+                              <Integer>0</Integer>
+                            </Data>
+                          </AggregatedDataValue>
+                        </Data>
+                        <Data property="DashStyle">
+                          <DataReference data="Core/Diagram.DashStyle.Solid"/>
+                        </Data>
+                        <Data property="Width">
+                          <Double>0.5</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                  </Object>
+                </Components>
+              </Object>
+            </Components>
+            <References objects="#Stream_Feed" property="Represents"/>
+          </Object>
+          <Object id="Drawing_Stream_Bottoms" type="Core/Diagram.RepresentationGroup">
+            <Components property="Groups">
+              <Object id="Drawing_Stream_Bottoms_Static" type="Core/Diagram.Static">
+                <Components property="Elements">
+                  <Object id="Line_Stream_Bottoms" type="Core/Diagram.ConnectorLine">
+                    <References objects="#Position_ColumnBottoms" property="Source"/>
+                    <References objects="#Position_SinkInlet" property="Target"/>
+                    <Data property="InnerPoints">
+                      <AggregatedDataValue type="Core/Diagram.Point">
+                        <Data property="X">
+                          <Double>210.0</Double>
+                        </Data>
+                        <Data property="Y">
+                          <Double>260.0</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                      <AggregatedDataValue type="Core/Diagram.Point">
+                        <Data property="X">
+                          <Double>320.0</Double>
+                        </Data>
+                        <Data property="Y">
+                          <Double>260.0</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                    <Data property="Stroke">
+                      <AggregatedDataValue type="Core/Diagram.Stroke">
+                        <Data property="Color">
+                          <AggregatedDataValue type="Core/Diagram.Color">
+                            <Data property="B">
+                              <Integer>0</Integer>
+                            </Data>
+                            <Data property="G">
+                              <Integer>0</Integer>
+                            </Data>
+                            <Data property="R">
+                              <Integer>0</Integer>
+                            </Data>
+                          </AggregatedDataValue>
+                        </Data>
+                        <Data property="DashStyle">
+                          <DataReference data="Core/Diagram.DashStyle.Solid"/>
+                        </Data>
+                        <Data property="Width">
+                          <Double>0.5</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                  </Object>
+                </Components>
+              </Object>
+            </Components>
+            <References objects="#Stream_Bottoms" property="Represents"/>
+          </Object>
+        </Components>
+        <References objects="#ProcessModel_Synthetic" property="Represents"/>
+        <Data property="BackgroundColor">
+          <AggregatedDataValue type="Core/Diagram.Color">
+            <Data property="B">
+              <Integer>255</Integer>
+            </Data>
+            <Data property="G">
+              <Integer>255</Integer>
+            </Data>
+            <Data property="R">
+              <Integer>255</Integer>
+            </Data>
+          </AggregatedDataValue>
+        </Data>
+        <Data property="MaxX">
+          <Double>420.0</Double>
+        </Data>
+        <Data property="MaxY">
+          <Double>297.0</Double>
+        </Data>
+        <Data property="MinX">
+          <Double>0.0</Double>
+        </Data>
+        <Data property="MinY">
+          <Double>0.0</Double>
+        </Data>
+        <Data property="Name">
+          <String>Synthetic DEXPI 2.0.1 process</String>
+        </Data>
+      </Object>
+    </Components>
+    <Data property="ExportDateTime">
+      <DateTime>2026-10-03T12:00:00</DateTime>
+    </Data>
+    <Data property="OriginatingSystemName">
+      <String>pyDEXPI</String>
+    </Data>
+    <Data property="OriginatingSystemVendorName">
+      <String>Process Intelligence Research, TU Delft</String>
+    </Data>
+    <Data property="OriginatingSystemVersion">
+      <Undefined/>
+    </Data>
+  </Object>
+</Model>
