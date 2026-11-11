@@ -10,11 +10,24 @@ It reads DEXPI 2.0 and 2.0.1 (XML and JSON) and Proteus XML (DEXPI 1.3) through
 | DEXPI model | Reading | What is taken |
 | --- | --- | --- |
 | Process model | PFD | process steps as equipment with what they give for themselves (duty, temperature, pressure, efficiency, pressure ratio, reflux ratio, area, volume, trays), streams with temperature, pressure, mass flow and composition (mass or mole), the vapour fraction from the phases of the material state, the roles of the ports (top and bottom products, vapour, liquid), the diagram's layout |
-| Plant model (P&ID) | P&ID | equipment, control and safety valves, the piping between them with line numbers, the height of the nozzles on the equipment, the design data of the equipment (exchanger duty and area, pump head and power, tank volume), the control loops (what each one measures and the valve it moves), the diagram's layout |
+| Plant model (P&ID) | P&ID | equipment, control and safety valves, the piping between them with line numbers, the height of the nozzles on the equipment, the design data of the equipment (exchanger duty and area, pump head and power, tank volume), the design pressure and temperature limits, the set pressure of the relief valves, the control loops (what each one measures and the valve it moves), the diagram's layout |
 
 Block valves, check valves, reducers and other in-line pieces are passed through, dead-end
 branches (drains, instrument taps) are left out and tees become mixers or splitters. The diagram
 is rendered as the picture the import shows the items on.
+
+## Several files
+
+```bash
+dwsim-dexpi pid-sheet-1.xml pid-sheet-2.xml process.xml -o plant.reading.json
+```
+
+Several files are read as one plant. The sheets of a P&ID are joined where a line leaves one at an
+off-page connector and enters another: the connectors are paired by the reference one makes to the
+other's number, else by a number they share, else by the line number of the lines they end. A
+process model of the same plant gives its stream conditions, compositions and equipment data to the
+items and lines of the P&ID with the same tags; junctions, which do not have tags on a P&ID, are
+matched by the items they join.
 
 ## Install for DWSIM
 
