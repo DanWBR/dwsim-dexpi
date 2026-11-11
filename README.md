@@ -16,6 +16,12 @@ Block valves, check valves, reducers and other in-line pieces are passed through
 branches (drains, instrument taps) are left out and tees become mixers or splitters. The diagram
 is rendered as the picture the import shows the items on.
 
+## Cases
+
+A model may give a value for several cases (a design case, a summer and a winter case). The value
+without a case is read, else the first one; `--case NAME` reads the values of that case. The notes
+of the reading list the cases the model has.
+
 ## Several files
 
 ```bash

@@ -43,7 +43,7 @@ from pydexpi.toolkits.diagram_toolkit import Bounds, object_extents
 from pydexpi.toolkits.display_name import get_tag
 from pydexpi.toolkits.model_toolkit import get_all_instances_in_model
 
-__version__ = "0.8.0"
+__version__ = "0.9.0"
 
 ITEM, PASS, END = "item", "pass", "end"
 
@@ -96,15 +96,35 @@ TO_FRACTION = {"Fraction": 1.0, "Percent": 1e-2, "PartsPerThousand": 1e-3, "Part
 
 # -- values ---------------------------------------------------------------------------------
 
+# The case to read where a model gives its values for several cases (--case), and the cases met.
+CASE = ""
+CASES: set[str] = set()
+
+
 def _quantity(values):
-    """The first value of a list of QualifiedValue that holds a number (or a vector) with a unit."""
+    """The value of a list of QualifiedValue that holds a number (or a vector) with a unit: the one
+    of the case asked for, else the first one that names no case, else the first one."""
+    usable = []
     for qualified in values or []:
         value = getattr(qualified, "value", None)
         if value is None or getattr(value, "unit", None) is None:
             continue
         if getattr(value, "value", None) is not None or getattr(value, "values", None):
+            case = getattr(qualified, "case", None)
+            case = case.strip() if isinstance(case, str) else ""
+            if case:
+                CASES.add(case)
+            usable.append((case, value))
+    if not usable:
+        return None
+    if CASE:
+        for case, value in usable:
+            if case.lower() == CASE.lower():
+                return value
+    for case, value in usable:
+        if not case:
             return value
-    return None
+    return usable[0][1]
 
 
 def _unit(quantity) -> tuple[str, str]:
@@ -1133,11 +1153,17 @@ def main() -> int:
                         help="a DEXPI file; several are read as one plant: P&ID sheets joined at their off-page connectors, and a process model for the stream data")
     parser.add_argument("-o", "--output", type=Path)
     parser.add_argument("--strict", action="store_true", help="refuse a file that omits mandatory DEXPI attributes")
+    parser.add_argument("--case", default="", help="the case to read where the model gives its values for several cases")
     parser.add_argument("--version", action="version", version="dwsim-dexpi " + __version__)
     args = parser.parse_args()
     logging.disable(logging.CRITICAL)
+    global CASE
+    CASE = args.case.strip()
     try:
         r = reading(args.model, args.strict)
+        if CASES:
+            r["notes"].append("cases in the model: " + ", ".join(sorted(CASES)) + "; read: " +
+                              (CASE if CASE.lower() in {c.lower() for c in CASES} else "the values without a case, else the first one of each"))
     except Exception as ex:  # noqa: BLE001 - whatever the loader raises is the message for the user
         print(f"{', '.join(path.name for path in args.model)}: not a DEXPI model pyDEXPI can read: {ex}", file=sys.stderr)
         return 1
