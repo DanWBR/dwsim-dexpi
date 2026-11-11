@@ -43,7 +43,7 @@ from pydexpi.toolkits.diagram_toolkit import Bounds, object_extents
 from pydexpi.toolkits.display_name import get_tag
 from pydexpi.toolkits.model_toolkit import get_all_instances_in_model
 
-__version__ = "0.7.0"
+__version__ = "0.8.0"
 
 ITEM, PASS, END = "item", "pass", "end"
 
@@ -322,6 +322,7 @@ class Network:
         merged["u"], merged["v"] = a["u"], b["v"]
         merged["from_port"], merged["to_port"] = a.get("from_port", ""), b.get("to_port", "")
         merged["from_level"], merged["to_level"] = a.get("from_level"), b.get("to_level")
+        merged["from_stage"], merged["to_stage"] = a.get("from_stage"), b.get("to_stage")
         merged["through"] = a.get("through", []) + ([name] if name else []) + b.get("through", [])
         self.edges = [e for e in self.edges if e is not a and e is not b]
         self._gone.extend((a, b))
@@ -572,7 +573,17 @@ def process_network(model) -> tuple[Network, list[str]]:
             if name not in compounds:
                 compounds.append(name)
         label = conn.label if isinstance(conn.label, str) else ""
+        def tray(port):
+            """The tray of a column a stream ends on: the number of the tray that owns the port, or a delegate of it."""
+            for delegate in [port, *(getattr(port, "subReference", None) or [])]:
+                hit = owners.get(id(delegate))
+                number = getattr(hit[0], "number", None) if hit and type(hit[0]).__name__ == "ContactingOnTray" else None
+                if isinstance(number, int) and not isinstance(number, bool) and number >= 1:
+                    return number
+            return None
+
         net.edge(add(src), add(dst), id=conn.identifier or "", name=label, line_number="",
+                 from_stage=tray(conn.source), to_stage=tray(conn.target),
                  T=temperature_c(conn.temperature), P=pressure_bar(conn.pressure),
                  W=w if w is not None else total, compounds=comp, mole_fractions=moles, vf=vapor_fraction(conn),
                  from_port=_role(conn.source), to_port=_role(conn.target))
@@ -930,6 +941,7 @@ def emit(net: Network, place) -> tuple[list[dict], list[dict], list[dict]]:
         lines.append({"id": e["id"], "name": e["name"], "line_number": e["line_number"], "from": frm, "to": to,
                       "T": e["T"], "P": e["P"], "W": e["W"], "vf": None if e.get("vf") is None else round(e["vf"], 6),
                       "from_level": e.get("from_level"), "to_level": e.get("to_level"),
+                      "from_stage": e.get("from_stage"), "to_stage": e.get("to_stage"),
                       "from_port": e.get("from_port", ""), "to_port": e.get("to_port", ""),
                       "compounds": {k: round(v, 6) for k, v in e["compounds"].items()},
                       "mole_fractions": {k: round(v, 8) for k, v in e.get("mole_fractions", {}).items()},
