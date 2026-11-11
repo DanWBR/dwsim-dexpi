@@ -41,7 +41,7 @@ from pydexpi.toolkits.diagram_toolkit import Bounds, object_extents
 from pydexpi.toolkits.display_name import get_tag
 from pydexpi.toolkits.model_toolkit import get_all_instances_in_model
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 ITEM, PASS, END = "item", "pass", "end"
 
@@ -142,6 +142,42 @@ TO_M2 = {"MetreSquared": 1.0, "CentimetreSquared": 1e-4, "MillimetreSquared": 1e
 TO_M3 = {"MetreCubed": 1.0, "DecimetreCubed": 1e-3, "Litre": 1e-3, "CentimetreCubed": 1e-6, "FootCubed": 0.028316846592,
          "UsGallon": 3.785411784e-3, "UsFluidOunce": 2.95735295625e-5}
 TO_W_M2K = {"WattPerMetreSquaredKelvin": 1.0, "KilowattPerMetreSquaredKelvin": 1e3}
+TO_M = {"Metre": 1.0, "Millimetre": 1e-3, "Centimetre": 1e-2, "Kilometre": 1e3, "Foot": 0.3048, "Inch": 0.0254}
+
+# the design data of a P&ID's equipment that the reading's specs take: spec name, attribute, unit table
+EQUIPMENT_SPECS = [
+    ("duty", "designHeatFlowRate", TO_WATT),
+    ("area", "designHeatTransferArea", TO_M2),
+    ("head", "designPressureHead", TO_M),
+    ("power", "designShaftPower", TO_WATT),
+    ("volume", "nominalCapacityVolume", TO_M3),
+]
+
+
+def equipment_specs(equipment) -> dict[str, float]:
+    """The design data a P&ID gives for an item, in SI units, under the reading's spec names."""
+    specs = {}
+    for key, attribute, table in EQUIPMENT_SPECS:
+        quantity = getattr(equipment, attribute, None)
+        unit = getattr(getattr(quantity, "unit", None), "value", None)
+        value = getattr(quantity, "value", None)
+        if unit in table and isinstance(value, (int, float)) and not isinstance(value, bool):
+            specs[key] = float(value) * table[unit]
+    return specs
+
+
+def vapor_fraction(stream) -> float | None:
+    """The vapour's share of a stream's mass flow, from the phases of its material state; None when they do not tell."""
+    state = getattr(stream, "materialStateReference", None)
+    phases = getattr(state, "phases", None) or []
+    flows = []
+    for phase in phases:
+        name = " ".join(str(getattr(phase, a, "") or "") for a in ("label", "identifier")).lower()
+        flows.append(("vap" in name or "gas" in name, massflow_kgh(phase.massFlow)))
+    if not flows or any(flow is None for _, flow in flows):
+        return None
+    total = sum(flow for _, flow in flows)
+    return sum(flow for vapor, flow in flows if vapor) / total if total > 0 else None
 
 
 def _scaled(values, table) -> float | None:
@@ -183,6 +219,7 @@ def step_specs(step) -> dict[str, float]:
         ("area", "area", lambda v: _scaled(v, TO_M2)),
         ("u", "heatTransferCoefficient", lambda v: _scaled(v, TO_W_M2K)),
         ("volume", "volume", lambda v: _scaled(v, TO_M3)),
+        ("head", "head", lambda v: _scaled(v, TO_M)),
     ]
     specs = {}
     for key, attribute, convert in sources:
@@ -439,7 +476,7 @@ def process_network(model) -> tuple[Network, list[str]]:
         label = conn.label if isinstance(conn.label, str) else ""
         net.edge(add(src), add(dst), id=conn.identifier or "", name=label, line_number="",
                  T=temperature_c(conn.temperature), P=pressure_bar(conn.pressure),
-                 W=w if w is not None else total, compounds=comp, mole_fractions=moles,
+                 W=w if w is not None else total, compounds=comp, mole_fractions=moles, vf=vapor_fraction(conn),
                  from_port=_role(conn.source), to_port=_role(conn.target))
     def inside_item(step):
         parent = steps[id(step)][1]
@@ -514,6 +551,9 @@ def plant_network(model, extents) -> tuple[Network, list[str]]:
     g = get_graph(model, graph_level="conceptual")
     levels = _nozzle_levels(model, extents)
     net.controllers = _control_loops(g)
+    from pydexpi.pydexpi_classes.plant import processEquipment
+
+    equipment = {e.id: e for e in get_all_instances_in_model(model, processEquipment.TaggedPlantItem)}
     controlled = {}
     for u, v, d in g.edges(data=True):
         if d.get("label") == "OperatedValveReference":
@@ -527,7 +567,8 @@ def plant_network(model, extents) -> tuple[Network, list[str]]:
         classes = d.get("labels", "").split(":")
         cls = classes[0]
         if EQUIPMENT_BASES & set(classes):
-            net.node(n, ITEM, d.get("tagName") or "", _equipment_category(classes), cls)
+            net.node(n, ITEM, d.get("tagName") or "", _equipment_category(classes), cls,
+                     specs=equipment_specs(equipment[n]) if n in equipment else {})
         elif n not in piped:
             continue
         elif "PipeOffPageConnector" in classes:
@@ -633,7 +674,7 @@ def reading(path: Path, strict: bool) -> dict:
             continue
         emitted[id(e)] = len(lines)
         lines.append({"id": e["id"], "name": e["name"], "line_number": e["line_number"], "from": frm, "to": to,
-                      "T": e["T"], "P": e["P"], "W": e["W"],
+                      "T": e["T"], "P": e["P"], "W": e["W"], "vf": None if e.get("vf") is None else round(e["vf"], 6),
                       "from_level": e.get("from_level"), "to_level": e.get("to_level"),
                       "from_port": e.get("from_port", ""), "to_port": e.get("to_port", ""),
                       "compounds": {k: round(v, 6) for k, v in e["compounds"].items()},

@@ -9,8 +9,8 @@ It reads DEXPI 2.0 and 2.0.1 (XML and JSON) and Proteus XML (DEXPI 1.3) through
 
 | DEXPI model | Reading | What is taken |
 | --- | --- | --- |
-| Process model | PFD | process steps as equipment with what they give for themselves (duty, temperature, pressure, efficiency, pressure ratio, reflux ratio, area, volume, trays), streams with temperature, pressure, mass flow and composition (mass or mole), the roles of the ports (top and bottom products, vapour, liquid), the diagram's layout |
-| Plant model (P&ID) | P&ID | equipment, control and safety valves, the piping between them with line numbers, the height of the nozzles on the equipment, the control loops (what each one measures and the valve it moves), the diagram's layout |
+| Process model | PFD | process steps as equipment with what they give for themselves (duty, temperature, pressure, efficiency, pressure ratio, reflux ratio, area, volume, trays), streams with temperature, pressure, mass flow and composition (mass or mole), the vapour fraction from the phases of the material state, the roles of the ports (top and bottom products, vapour, liquid), the diagram's layout |
+| Plant model (P&ID) | P&ID | equipment, control and safety valves, the piping between them with line numbers, the height of the nozzles on the equipment, the design data of the equipment (exchanger duty and area, pump head and power, tank volume), the control loops (what each one measures and the valve it moves), the diagram's layout |
 
 Block valves, check valves, reducers and other in-line pieces are passed through, dead-end
 branches (drains, instrument taps) are left out and tees become mixers or splitters. The diagram
