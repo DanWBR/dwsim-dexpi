@@ -43,7 +43,7 @@ from pydexpi.toolkits.diagram_toolkit import Bounds, object_extents
 from pydexpi.toolkits.display_name import get_tag
 from pydexpi.toolkits.model_toolkit import get_all_instances_in_model
 
-__version__ = "0.6.0"
+__version__ = "0.7.0"
 
 ITEM, PASS, END = "item", "pass", "end"
 
@@ -907,9 +907,13 @@ def emit(net: Network, place) -> tuple[list[dict], list[dict], list[dict]]:
         if d["kind"] != ITEM:
             continue
         x, y = place(d)
-        units.append({"tag": d["tag"], "category": d["category"], "x": x, "y": y, "stages": d.get("stages"),
-                      "specs": {k: round(v, 6) for k, v in (d.get("specs") or {}).items()},
-                      "dexpi_class": d["cls"], "dexpi_id": d.get("own", key)})
+        unit = {"tag": d["tag"], "category": d["category"], "x": x, "y": y, "stages": d.get("stages"),
+                "specs": {k: round(v, 6) for k, v in (d.get("specs") or {}).items()},
+                "dexpi_class": d["cls"], "dexpi_id": d.get("own", key)}
+        if d["category"] == "Column" and d.get("stages") and d["cls"] != "Absorbing":
+            # a column the model gives the trays of is a rigorous one
+            unit["type"] = "DistillationColumn"
+        units.append(unit)
 
     def end(key):
         d = net.nodes[key]
