@@ -43,7 +43,7 @@ from pydexpi.toolkits.diagram_toolkit import Bounds, object_extents
 from pydexpi.toolkits.display_name import get_tag
 from pydexpi.toolkits.model_toolkit import get_all_instances_in_model
 
-__version__ = "0.5.0"
+__version__ = "0.6.0"
 
 ITEM, PASS, END = "item", "pass", "end"
 
@@ -280,6 +280,7 @@ class Network:
         self.edges: list[dict] = []
         self.notes: list[str] = []
         self.controllers: list[dict] = []
+        self.aliases: dict[str, list[str]] = {}
         # where a piece taken out went: ("node", key) or ("edge", line), and the lines joined into others
         self._went: dict[str, tuple] = {}
         self._joined: dict[int, dict] = {}
@@ -575,6 +576,7 @@ def process_network(model) -> tuple[Network, list[str]]:
                  T=temperature_c(conn.temperature), P=pressure_bar(conn.pressure),
                  W=w if w is not None else total, compounds=comp, mole_fractions=moles, vf=vapor_fraction(conn),
                  from_port=_role(conn.source), to_port=_role(conn.target))
+        net._went.setdefault(conn.id, ("edge", net.edges[-1]))
     def inside_item(step):
         parent = steps[id(step)][1]
         while parent is not None and id(parent) in steps:
@@ -592,7 +594,72 @@ def process_network(model) -> tuple[Network, list[str]]:
     if not compounds:
         compounds = [c.label if isinstance(c.label, str) and c.label else c.identifier
                      for c in pmod.materialComponents if (c.label or c.identifier)]
+    net.controllers = _process_loops(pmod, owners, steps)
+    net.aliases = _compound_aliases(pmod)
     return net, compounds
+
+
+MEASURED = {"pressure": "P", "temperature": "T", "level": "L", "flow": "F"}
+
+
+def _process_loops(pmod, owners, steps) -> list[dict]:
+    """The control loops of a process model: a measuring activity, the controlling activity it informs and the step that one acts on."""
+    flows = [c for c in pmod.processConnections if type(c).__name__ == "InformationFlow"]
+
+    def owner(port):
+        hit = owners.get(id(port))
+        return hit[0] if hit else None
+
+    loops = []
+    for system in getattr(pmod, "instrumentationSystemActivities", None) or []:
+        activities = list(getattr(system, "instrumentationActivities", None) or [])
+        measuring = [a for a in activities if type(a).__name__ == "MeasuringProcessVariable"]
+        controlling = [a for a in activities if type(a).__name__ == "ControllingProcessVariable"]
+        if not measuring or not controlling:
+            continue
+        meter = measuring[0]
+        quantity = str(getattr(getattr(meter, "measuredVariable", None), "value", "") or "").lower()
+        variable = next((letter for word, letter in MEASURED.items() if word in quantity), "")
+        stream = getattr(meter, "connectionReference", None)
+        step = getattr(meter, "processStepReference", None)
+        if not variable:
+            # the quantity list of the standard does not have temperature: the value measured tells, by the attribute that holds it
+            measured = getattr(meter, "measuredVariableReference", None)
+            for holder in (stream, step):
+                for name, values in (vars(holder).items() if holder is not None and measured is not None else []):
+                    if isinstance(values, list) and any(v is measured for v in values):
+                        variable = next((letter for word, letter in MEASURED.items() if word in name.lower()), variable)
+        targets = [owner(f.target) for f in flows if any(owner(f.source) is c for c in controlling)]
+        valves = [t for t in targets if t is not None and id(t) in steps]
+        detail = getattr(meter, "processStepDetailReference", None)
+        if step is None and detail is not None:
+            step = pt.step_holding(pmod, detail)
+        sense = stream.id if stream is not None else step.id if step is not None else None
+        if not variable or not valves or sense is None:
+            continue
+        tag = next((t for t in (getattr(system, "identifier", None), getattr(controlling[0], "identifier", None)) if isinstance(t, str) and t.strip()), "")
+        loops.append({"tag": tag.strip(), "variable": variable, "valve": valves[0].id, "sense": sense})
+    return loops
+
+
+def _compound_aliases(pmod) -> dict[str, list[str]]:
+    """Other names each compound goes by in the model: its identifier, its IUPAC and ChEBI identifiers and a CAS number in its description."""
+    aliases = {}
+    for c in pmod.materialComponents:
+        name = c.label if isinstance(c.label, str) and c.label else c.identifier
+        if not isinstance(name, str) or not name:
+            continue
+        others = []
+        for value in (c.identifier, getattr(c, "iUPAC_identifier", None), getattr(c, "chEBI_identifier", None)):
+            if isinstance(value, str) and value.strip() and value.strip() != name:
+                others.append(value.strip())
+        description = getattr(c, "description", None)
+        texts = [getattr(t, "value", "") for t in getattr(description, "singleLanguageStrings", None) or []] if description is not None else []
+        for text in texts:
+            others += re.findall(r"(?<!\d)\d{2,7}-\d{2}-\d(?!\d)", str(text))
+        if others:
+            aliases[name] = list(dict.fromkeys(others))
+    return aliases
 
 
 # -- plant model (P&ID) ---------------------------------------------------------------------
@@ -1023,6 +1090,9 @@ def reading(paths: list[Path], strict: bool) -> dict:
     for extra in (processes[1:] if plants else processes[1:]):
         notes.append(f"{extra.path.name}: one process model is read at a time; left out")
 
+    aliases = {}
+    for sh in sheets:
+        aliases.update(sh.net.aliases)
     origins = sorted({sh.origin() for sh in sheets if sh.origin()})
     kinds = ("plant" if plants else "process") + (" and process" if plants and processes else "")
     return {
@@ -1032,7 +1102,7 @@ def reading(paths: list[Path], strict: bool) -> dict:
         "units": units,
         "controllers": controllers,
         "lines" if plants else "streams": lines,
-        "process": {"description": "", "class": "", "compounds": compounds,
+        "process": {"description": "", "class": "", "compounds": compounds, "compound_aliases": aliases,
                     "evidence": "DEXPI " + kinds + " model" + ("s" if len(sheets) > 1 else "") + (", from " + ", ".join(origins) if origins else "")},
         "texts": [],
         "notes": notes,
